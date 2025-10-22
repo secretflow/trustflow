@@ -53,3 +53,5 @@ _build
 .venv
 testdata
 *.log
+*.key
+*.crt
