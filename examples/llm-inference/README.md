@@ -43,7 +43,7 @@ docker compose up -d
 
 我们先安装依赖
 
-```python
+```bash
 pip install requirements.txt
 ```
 

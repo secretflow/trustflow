@@ -92,7 +92,7 @@ def build_jwe(
     tag = encryptor.tag
 
     # 用服务公钥加密对称密钥
-    public_key = serialization.load_pem_public_key(public_key_pem, "PEM")
+    public_key = serialization.load_pem_public_key(public_key_pem)
     encrypted_data_key = public_key.encrypt(
         data_key,
         padding.OAEP(
@@ -167,7 +167,7 @@ def main():
     server_cert = ra_response.json().get("cert")
     ra_report = ra_response.json().get("attestation_report")
 
-    # 3. Encrypted request
+    # 2. Encrypted request
     llm_url = "http://127.0.0.1:50001/v1/chat/completions"
     message = {
         "model": "Qwen/Qwen3-0.6B",
@@ -193,7 +193,7 @@ def main():
     )
     assert response.status_code == 200, f"Failed to request llm: {response}"
 
-    # 4. Parse encrypted response
+    # 3. Parse encrypted response
     response_msg = parse_jwe(json.dumps(response.json()), data_key)
     response_msg = json.loads(response_msg)
     print("提问问题：", chat)
