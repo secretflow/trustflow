@@ -44,7 +44,7 @@ docker compose up -d
 我们先安装依赖
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 执行测试脚本，脚本会向vLLM服务发送聊天内容并获取回答。
