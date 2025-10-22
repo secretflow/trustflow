@@ -47,7 +47,7 @@ docker compose up -d
 pip install requirements.txt
 ```
 
-执行测试脚本，脚本会向本地
+执行测试脚本，脚本会向vLLM服务发送聊天内容并获取回答。
 ```bash
 python jwe_client.py
 ```
