@@ -25,6 +25,7 @@
 
 #include "trustflow/attestation/common/constants.h"
 #include "trustflow/attestation/utils/json2pb.h"
+#include "trustflow/attestation/utils/bin2str.h"
 
 namespace trustflow {
 namespace attestation {
@@ -49,6 +50,30 @@ inline void SetCollateral(const std::string& name, const std::string& value,
   *length = value.size() + 1;
 }
 
+inline void SetCollateral(const std::string& name, const std::vector<uint8_t>& value,
+                          char** dest, uint32_t* length) {
+  YACL_ENFORCE(!value.empty(), "Invlaid collateral data: {}", name);
+  // Allocate memory for decoded data (with null terminator for qvl compatibility)
+  char* decoded_data = static_cast<char*>(malloc(value.size() + 1));
+  YACL_ENFORCE(decoded_data != nullptr, "Failed to allocate memory for {}", name);
+  memcpy(decoded_data, value.data(), value.size());
+  decoded_data[value.size()] = '\0';
+  *dest = decoded_data;
+  *length = value.size() + 1;
+}
+
+inline void SetCollateralFromEscapedString(const std::string& name, const std::string& escaped_value,
+                      char** dest, uint32_t* length) {
+  YACL_ENFORCE(!escaped_value.empty(), "Invalid collateral data: {}", name);
+  
+  std::vector<uint8_t> decoded = utils::EscapedStringToCharArrayBinary(escaped_value);
+  if (decoded.empty()) {
+    YACL_THROW("Failed to decode escaped string for {}", name);
+  }
+  
+  SetCollateral(name, decoded, dest, length);
+}
+
 void InitializeCollateralData(const ual::SgxQlQveCollateral& collateral,
                               sgx_ql_qve_collateral_t* collateral_data) {
   collateral_data->version = collateral.version();
@@ -56,10 +81,10 @@ void InitializeCollateralData(const ual::SgxQlQveCollateral& collateral,
   SetCollateral("pck_crl_issuer_chain", collateral.pck_crl_issuer_chain(),
                 &(collateral_data->pck_crl_issuer_chain),
                 &(collateral_data->pck_crl_issuer_chain_size));
-  SetCollateral("root_ca_crl", collateral.root_ca_crl(),
+  SetCollateralFromEscapedString("root_ca_crl", collateral.root_ca_crl(),
                 &(collateral_data->root_ca_crl),
                 &(collateral_data->root_ca_crl_size));
-  SetCollateral("pck_crl", collateral.pck_crl(), &(collateral_data->pck_crl),
+  SetCollateralFromEscapedString("pck_crl", collateral.pck_crl(), &(collateral_data->pck_crl),
                 &(collateral_data->pck_crl_size));
   SetCollateral("tcb_info_issuer_chain", collateral.tcb_info_issuer_chain(),
                 &(collateral_data->tcb_info_issuer_chain),

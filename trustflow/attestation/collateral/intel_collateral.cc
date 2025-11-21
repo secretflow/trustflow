@@ -19,6 +19,7 @@
 #include "yacl/base/exception.h"
 
 #include "trustflow/attestation/utils/json2pb.h"
+#include "trustflow/attestation/utils/bin2str.h"
 
 namespace trustflow {
 namespace attestation {
@@ -61,13 +62,12 @@ void GetIntelCollateral(
   collateral.set_pck_crl_issuer_chain(std::move(pck_crl_issuer_chain));
 
   std::string root_ca_crl;
-  CharArray2String(p_collateral_t->root_ca_crl,
+  utils::CharArrayBinaryToEscapedString(reinterpret_cast<const uint8_t*>(p_collateral_t->root_ca_crl),
                    p_collateral_t->root_ca_crl_size, root_ca_crl);
-  collateral.set_root_ca_crl(std::move(root_ca_crl));
+  collateral.set_root_ca_crl(std::move(root_ca_crl)); 
 
   std::string pck_crl;
-  CharArray2String(p_collateral_t->pck_crl, p_collateral_t->pck_crl_size,
-                   pck_crl);
+  utils::CharArrayBinaryToEscapedString(reinterpret_cast<const uint8_t*>(p_collateral_t->pck_crl), p_collateral_t->pck_crl_size, pck_crl);
   collateral.set_pck_crl(std::move(pck_crl));
 
   std::string tcb_info_issuer_chain;

@@ -22,6 +22,7 @@ trustflow_cc_library(
     hdrs = ["intel_collateral.h"],
     deps = [
         "//trustflow/attestation/utils:json2pb",
+        "//trustflow/attestation/utils:bin2str",
         "@dcap//:sgx_dcap_quoteverify",
         "@sf_apis//:cc_sf_apis_proto",
         "@yacl//yacl/base:exception",

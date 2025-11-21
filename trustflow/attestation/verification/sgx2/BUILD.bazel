@@ -20,6 +20,7 @@ cc_library(
     hdrs = ["sgx2_verifier.h"],
     deps = [
         "//trustflow/attestation/common:constants",
+        "//trustflow/attestation/utils:bin2str",
         "//trustflow/attestation/verification/interface:verifier",
         "@cppcodec",
         "@dcap//:sgx_dcap_quoteverify",

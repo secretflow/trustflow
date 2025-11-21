@@ -24,3 +24,8 @@ trustflow_cc_library(
         "@yacl//yacl/base:exception",
     ],
 )
+
+trustflow_cc_library(
+    name = "bin2str",
+    hdrs = ["bin2str.h"],
+)
