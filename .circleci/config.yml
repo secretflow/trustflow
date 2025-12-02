@@ -258,7 +258,7 @@ workflows:
       - pypi_publish:
           matrix:
             parameters:
-              python_ver: ["3.10"]
+              python_ver: ["3.10", "3.11"]
   proxy-image-publish-workflow:
     when:
       and:
