@@ -34,16 +34,14 @@ namespace utils {
 //       Collateral version 3.0 (PCS/PCCS API V3): Base16 encoded DER (hex string)
 //       Collateral version 3.1 (PCS/PCCS API V3): Raw binary DER (binary data)
 inline void CharArrayBinaryToEscapedString(const uint8_t* data, size_t size, std::string& result) {
+  result.clear();
   result.reserve(size * 6);  // Worst case: each byte becomes \uXXXX (6 chars)
   
   for (size_t i = 0; i < size; ++i) {
     uint8_t byte = data[i];
     
-    if (byte == 0x00) {
-      // Null byte: escape as \u0000
-      result += "\\u0000";
-    } else if (byte >= 0x20 && byte < 0x7F) {
-      // ASCII printable (except control chars): use as-is
+    if (byte >= 0x20 && byte <= 0x7E) {
+      // ASCII printable characters: use as-is
       // Escape special JSON characters
       if (byte == '\\' || byte == '"') {
         result += '\\';
@@ -52,7 +50,7 @@ inline void CharArrayBinaryToEscapedString(const uint8_t* data, size_t size, std
         result += static_cast<char>(byte);
       }
     } else {
-      // Control characters (0x01-0x1F) and non-ASCII bytes (0x80-0xFF): escape as \uXXXX
+      // Control characters (0x00-0x1F), DEL (0x7F), and non-ASCII bytes (0x80-0xFF): escape as \uXXXX
       char hex[7];
       snprintf(hex, sizeof(hex), "\\u%04X", static_cast<unsigned int>(byte));
       result += hex;
@@ -61,9 +59,10 @@ inline void CharArrayBinaryToEscapedString(const uint8_t* data, size_t size, std
 }
 
 // Convert escaped string (\uXXXX sequences) back to binary (as char array).
-inline std::vector<uint8_t> EscapedStringToCharArrayBinary(const std::string& escaped_str) {
+// If add_null_terminator is true, appends a null byte at the end for C string compatibility.
+inline std::vector<uint8_t> EscapedStringToCharArrayBinary(const std::string& escaped_str, bool add_null_terminator = false) {
   std::vector<uint8_t> binary;
-  binary.reserve(escaped_str.size());  // Approximate size
+  binary.reserve(escaped_str.size() + (add_null_terminator ? 1 : 0));  // Approximate size
   
   for (size_t i = 0; i < escaped_str.size(); ++i) {
     if (escaped_str[i] == '\\' && i + 1 < escaped_str.size()) {
@@ -87,6 +86,10 @@ inline std::vector<uint8_t> EscapedStringToCharArrayBinary(const std::string& es
     }
     // Regular character
     binary.push_back(static_cast<uint8_t>(escaped_str[i]));
+  }
+  
+  if (add_null_terminator) {
+    binary.push_back(0);  // Add null terminator
   }
   
   return binary;

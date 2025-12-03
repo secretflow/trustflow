@@ -44,7 +44,7 @@ namespace ual = secretflowapis::v2::sdc;
 
 inline void SetCollateral(const std::string& name, const std::string& value,
                           char** dest, uint32_t* length) {
-  YACL_ENFORCE(!value.empty(), "Invlaid collateral data: {}", name);
+  YACL_ENFORCE(!value.empty(), "Invalid collateral data: {}", name);
   *dest = const_cast<char*>(value.data());
   // +1 is the workaround for the code in qvl, size should include the end '\0'
   *length = value.size() + 1;
@@ -52,39 +52,38 @@ inline void SetCollateral(const std::string& name, const std::string& value,
 
 inline void SetCollateral(const std::string& name, const std::vector<uint8_t>& value,
                           char** dest, uint32_t* length) {
-  YACL_ENFORCE(!value.empty(), "Invlaid collateral data: {}", name);
-  // Allocate memory for decoded data (with null terminator for qvl compatibility)
-  char* decoded_data = static_cast<char*>(malloc(value.size() + 1));
-  YACL_ENFORCE(decoded_data != nullptr, "Failed to allocate memory for {}", name);
-  memcpy(decoded_data, value.data(), value.size());
-  decoded_data[value.size()] = '\0';
-  *dest = decoded_data;
-  *length = value.size() + 1;
+  YACL_ENFORCE(!value.empty(), "Invalid collateral data: {}", name);
+  *dest = reinterpret_cast<char*>(const_cast<uint8_t*>(value.data()));
+  *length = value.size();
 }
 
 inline void SetCollateralFromEscapedString(const std::string& name, const std::string& escaped_value,
-                      char** dest, uint32_t* length) {
+                      std::vector<uint8_t>& storage, char** dest, uint32_t* length) {
   YACL_ENFORCE(!escaped_value.empty(), "Invalid collateral data: {}", name);
-  
-  std::vector<uint8_t> decoded = utils::EscapedStringToCharArrayBinary(escaped_value);
-  if (decoded.empty()) {
+  storage = utils::EscapedStringToCharArrayBinary(escaped_value, true);
+  if (storage.empty()) {
     YACL_THROW("Failed to decode escaped string for {}", name);
   }
-  
-  SetCollateral(name, decoded, dest, length);
+  *dest = reinterpret_cast<char*>(storage.data());
+  *length = storage.size();
 }
 
 void InitializeCollateralData(const ual::SgxQlQveCollateral& collateral,
-                              sgx_ql_qve_collateral_t* collateral_data) {
+                              sgx_ql_qve_collateral_t* collateral_data,
+                              std::vector<uint8_t>& root_ca_crl_storage,
+                              std::vector<uint8_t>& pck_crl_storage) {
   collateral_data->version = collateral.version();
   // Set the sgx_ql_qve_collateral_t with data pointer and size
   SetCollateral("pck_crl_issuer_chain", collateral.pck_crl_issuer_chain(),
                 &(collateral_data->pck_crl_issuer_chain),
                 &(collateral_data->pck_crl_issuer_chain_size));
   SetCollateralFromEscapedString("root_ca_crl", collateral.root_ca_crl(),
+                root_ca_crl_storage,
                 &(collateral_data->root_ca_crl),
                 &(collateral_data->root_ca_crl_size));
-  SetCollateralFromEscapedString("pck_crl", collateral.pck_crl(), &(collateral_data->pck_crl),
+  SetCollateralFromEscapedString("pck_crl", collateral.pck_crl(),
+                pck_crl_storage,
+                &(collateral_data->pck_crl),
                 &(collateral_data->pck_crl_size));
   SetCollateral("tcb_info_issuer_chain", collateral.tcb_info_issuer_chain(),
                 &(collateral_data->tcb_info_issuer_chain),
@@ -220,8 +219,12 @@ void TdxAttestationVerifier::ParseUnifiedReport(
 }
 
 void TdxAttestationVerifier::VerifyPlatform() {
+  // Storage for binary CRL data (with null terminators)
+  std::vector<uint8_t> root_ca_crl_storage;
+  std::vector<uint8_t> pck_crl_storage;
+  
   sgx_ql_qve_collateral_t collateral_data;
-  InitializeCollateralData(collateral_, &collateral_data);
+  InitializeCollateralData(collateral_, &collateral_data, root_ca_crl_storage, pck_crl_storage);
 
   // get supplemental data size
   uint32_t supplemental_data_size = 0;

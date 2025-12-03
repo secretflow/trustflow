@@ -64,7 +64,7 @@ void GetIntelCollateral(
   std::string root_ca_crl;
   utils::CharArrayBinaryToEscapedString(reinterpret_cast<const uint8_t*>(p_collateral_t->root_ca_crl),
                    p_collateral_t->root_ca_crl_size, root_ca_crl);
-  collateral.set_root_ca_crl(std::move(root_ca_crl)); 
+  collateral.set_root_ca_crl(std::move(root_ca_crl));
 
   std::string pck_crl;
   utils::CharArrayBinaryToEscapedString(reinterpret_cast<const uint8_t*>(p_collateral_t->pck_crl), p_collateral_t->pck_crl_size, pck_crl);
