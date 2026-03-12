@@ -128,11 +128,11 @@ def _com_github_dcap():
         http_archive,
         name = "dcap",
         urls = [
-            "https://github.com/intel/SGXDataCenterAttestationPrimitives/archive/refs/tags/DCAP_1.20.tar.gz",
+            "https://github.com/intel/confidential-computing.tee.dcap/archive/refs/tags/DCAP_1.20.tar.gz",
         ],
         build_file = "@trustflow//bazel:dcap.BUILD",
-        strip_prefix = "SGXDataCenterAttestationPrimitives-DCAP_1.20",
-        sha256 = "a71bba80f8da53ce2877f4c2bd2d1713ab97acc4a3e7987d82d7430cda2d8fb1",
+        strip_prefix = "confidential-computing.tee.dcap-DCAP_1.20",
+        sha256 = "3a69a687f2222433addd25dfe6e54a6ca164fcbf4c3dec5ad9e8b155c5bb98cb",
     )
 
 def _com_gitee_hygon_csv_header():
